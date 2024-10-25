@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraping Progress</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Web Scraper Progress</h1>
+    <button id="start-button">Start Scraping</button>
+    <button id="stop-button" disabled>Stop Scraping</button>
+    <div id="progress-bar" style="width: 100%; background: #f3f3f3;">
+        <div id="progress" style="width: 0%; height: 30px; background: #4caf50;"></div>
+    </div>
+    <p id="status"></p>
+
+    <script>
+        $(document).ready(function() {
+            $('#start-button').click(function() {
+                $('#status').text('Starting scraping...');
+                $('#progress').css('width', '0%');
+                $('#start-button').prop('disabled', true);
+                $('#stop-button').prop('disabled', false);
+                
+                $.post('/start-scraping', function(data) {
+                    if (data.status === 'started') {
+                        checkProgress();
+                    } else {
+                        $('#status').text('Scraping is already running.');
+                    }
+                });
+            });
+
+            $('#stop-button').click(function() {
+                $.post('/stop-scraping', function(data) {
+                    if (data.status === 'stopped') {
+                        $('#status').text('Scraping stopped.');
+                        $('#start-button').prop('disabled', false);
+                        $('#stop-button').prop('disabled', true);
+                    }
+                });
+            });
+
+            function checkProgress() {
+                setInterval(function() {
+                    $.get('/progress', function(data) {
+                        $('#progress').css('width', data.progress + '%');
+                    });
+                }, 1000); // Update progress every second
+            }
+        });
+    </script>
+</body>
+</html>
